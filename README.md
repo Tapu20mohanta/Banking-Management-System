@@ -1,14 +1,10 @@
-# Banking Management System 
+# Banking Management System
 
 A complete, persistent, menu-driven **Banking Management System** developed entirely in standard C (C11). This project demonstrates modular architecture, custom data structures, binary file persistence, safe input validation, and defensive programming tailored for technical interviews at companies like **Sasken Technology**.
 
 ---
 
-## 1. Project Overview & Resume Alignment
-
-### Resume Bullet Points
-> - *Developed a Banking Management System in C to manage customer accounts, deposits, withdrawals, balance inquiries, and transaction records.*
-> - *Implemented custom structures, binary file handling, and robust input validation for efficient, persistent data management.*
+## 1. Project Overview
 
 ### Core Capabilities
 - **Account Management**: Create accounts with auto-generated sequential IDs (starting at 1001), account type categorization (Savings/Current), and full details search.
