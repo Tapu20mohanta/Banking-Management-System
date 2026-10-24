@@ -1,4 +1,4 @@
-# Banking Management System (Pure C)
+# Banking Management System 
 
 A complete, persistent, menu-driven **Banking Management System** developed entirely in standard C (C11). This project demonstrates modular architecture, custom data structures, binary file persistence, safe input validation, and defensive programming tailored for technical interviews at companies like **Sasken Technology**.
 
