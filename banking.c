@@ -369,9 +369,9 @@ void display_account_details(const Account *acc) {
  * Time Complexity: O(n) where n = account_count
  * Space Complexity: O(1) - no extra memory used
  *
- * For 1000 accounts, this is fast enough. For millions of accounts,
- * we would use binary search (O(log n)) on a sorted array, or a
- * hash table (O(1) average). This is a common interview discussion point.
+ * For 1000 accounts, this is fast and simple. For millions of accounts,
+ * binary search (O(log n)) on a sorted array or an on-disk index / hash
+ * table (O(1) average) can be implemented.
  */
 int find_account_index(int account_number) {
     int i;

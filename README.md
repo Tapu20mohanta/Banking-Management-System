@@ -1,6 +1,6 @@
 # Banking Management System
 
-A complete, persistent, menu-driven **Banking Management System** developed entirely in standard C (C11). This project demonstrates modular architecture, custom data structures, binary file persistence, safe input validation, and defensive programming tailored for technical interviews at companies like **Sasken Technology**.
+A modular, persistent, menu-driven **Banking Management System** developed entirely in standard C (C11). This project demonstrates clean modular architecture, custom data structures, binary file persistence, safe input validation, exact financial arithmetic, and defensive systems programming.
 
 ---
 
@@ -25,10 +25,11 @@ banking management system/
 ├── banking.c        # Account management, transactions, and input validation
 ├── file_handler.h   # File persistence declarations
 ├── file_handler.c   # Binary file I/O operations (accounts.dat, transactions.dat)
-├── accounts.dat     # Binary file storing Account records (auto-generated)
-├── transactions.dat # Binary file storing Transaction records (auto-generated)
-├── banking.exe      # Compiled binary executable
-└── README.md        # Comprehensive documentation and interview guide
+├── Makefile         # Build automation for Linux, macOS, and Windows
+├── build.bat        # Automated one-click build script for Windows
+├── build.sh         # Automated build script for Linux/macOS
+├── .gitignore       # Git ignore rules for binaries, object files, and data
+└── README.md        # Comprehensive project documentation
 ```
 
 ---
@@ -96,25 +97,47 @@ typedef struct {
 
 ---
 
-## 4. Compilation & Execution Guide
+## 4. Build & Execution Guide
 
-### Standard Compilation (GCC / Linux / macOS)
+### Option 1: Using Makefile (Cross-Platform)
+
+```bash
+# Build the project
+make
+
+# Run the application
+make run
+
+# Clean build artifacts and executables
+make clean
+```
+
+### Option 2: Automated Scripts
+
+**Windows (Command Prompt / PowerShell):**
+```cmd
+build.bat
+```
+
+**Linux / macOS:**
+```bash
+chmod +x build.sh
+./build.sh
+```
+
+### Option 3: Manual GCC Compilation
+
+**Linux / macOS:**
 ```bash
 gcc -std=c11 -Wall -Wextra -Wpedantic -o banking main.c banking.c file_handler.c
 ./banking
 ```
 
-### Windows Compilation (MinGW GCC)
-1. Ensure MinGW is installed (e.g., `C:\MinGW\bin`).
-2. Add MinGW to your session PATH or environment:
-   ```powershell
-   $env:PATH = "C:\MinGW\bin;" + $env:PATH
-   ```
-3. Compile with strict flags:
-   ```powershell
-   gcc -std=c11 -Wall -Wextra -Wpedantic -o banking.exe main.c banking.c file_handler.c
-   .\banking.exe
-   ```
+**Windows (MinGW):**
+```powershell
+gcc -std=c11 -Wall -Wextra -Wpedantic -o banking.exe main.c banking.c file_handler.c
+.\banking.exe
+```
 
 *Note: The project compiles cleanly with **zero warnings** under `-std=c11 -Wall -Wextra -Wpedantic`.*
 
@@ -227,146 +250,35 @@ Error: Insufficient balance.
 
 ---
 
-## 8. Technical Interview Preparation (Sasken Technology)
+## 8. Technical Design & Implementation Highlights
 
-### 60-90 Second Project Pitch (Elevator Speech)
-> *"For my project, I built a modular Banking Management System in standard C designed around reliability and data integrity. It handles the core lifecycle of customer accounts, deposits, withdrawals, and an immutable transaction audit log.
->
-> On the technical side, I placed special emphasis on memory safety and financial correctness. I avoided floating-point inaccuracies by storing all currency values as integer paise using 64-bit integers (`long long`). For user input, I strictly avoided unsafe functions like `gets()` or unbounded `scanf()`, implementing a robust line-reading routine with `fgets()` and `strtol()` to prevent buffer overflows and stream hangs.
->
-> For persistence, I separated account records and transaction history into binary files using `fread()`, `fwrite()`, and `fflush()`, incorporating in-memory rollbacks if disk operations fail. This gave me hands-on practice with modular C architecture, pointers, structs, file handling, and defensive programming."*
+### 1. Financial Precision via Integer Representation
+Standard floating-point types (`float`, `double`) adhere to IEEE-754 binary floating-point representation. They cannot represent decimal fractions like `0.1` or `0.01` without infinitesimal errors that accumulate over repetitive transactions.
+- In this system, all balances and transaction amounts are stored in **paise** as signed 64-bit integers (`long long`).
+- Rs. `1,250.75` is stored as `125075LL`.
+- Maximum representable balance exceeds **Rs. 92 quadrillion** ($2^{63}-1$ paise), eliminating any possibility of overflow in real-world scenarios while preserving exact precision down to the single paisa.
 
----
+### 2. Robust Input Sanitization & Buffer Security
+- Vulnerable C input routines such as `gets()` and unbounded `scanf()` are completely avoided.
+- All user inputs are read line-by-line via `fgets()` with fixed buffer bounds, followed by automatic newline stripping and stream purging if inputs exceed the buffer size.
+- Numeric conversions are processed via `strtol()` with complete pointer validation (`endptr`), rejecting trailing garbage characters and preventing infinite loops caused by non-numeric inputs.
 
-### 25 Technical Interview Questions & Answers
+### 3. Binary File Persistence & Rollback Guarantees
+- Account state is maintained in `accounts.dat` using binary records (`Account` struct), enabling rapid batch read/write operations without string parsing overhead.
+- Transaction logs are stored as an immutable audit trail in `transactions.dat` using append-only mode (`"ab"`).
+- **Two-phase rollback**: If a disk write fails during a deposit or withdrawal, the in-memory balance is immediately restored to its pre-transaction state, and the transaction is aborted to prevent divergence between memory and disk.
 
-#### Category 1: C Language Core, Structs & Memory
-
-**Q1: Why did you use `typedef struct` instead of just `struct`?**
-> **Answer**: In C, defining `struct Account { ... };` requires writing `struct Account acc;` every time a variable is declared. Using `typedef struct { ... } Account;` creates an alias, allowing us to declare variables directly as `Account acc;`, improving code readability and modularity.
-
-**Q2: What is the size of your `Account` struct and how does struct padding/alignment affect it?**
-> **Answer**: `Account` contains an `int` (4 bytes), `char name[100]` (100 bytes), `char account_type[20]` (20 bytes), and `long long balance_paise` (8 bytes). 
-> Sum of members = 4 + 100 + 20 + 8 = 132 bytes. Depending on compiler alignment rules (typically 4-byte or 8-byte alignment for 64-bit integers), compilers may insert padding bytes before `balance_paise` or at the end so the struct size is a multiple of the largest member's alignment.
-
-**Q3: Why pass `const Account *acc` to `display_account_details()` instead of `Account acc`?**
-> **Answer**: Two reasons:
-> 1. **Efficiency**: Passing by value copies the entire 132+ byte struct onto the call stack. Passing a pointer copies only 4 or 8 bytes (the address).
-> 2. **Safety**: The `const` qualifier guarantees the function cannot accidentally modify the caller's struct data.
-
-**Q4: What is the difference between `.` (dot) and `->` (arrow) operators?**
-> **Answer**: The dot operator (`.`) accesses members of a struct variable directly (e.g., `new_acc.account_number`). The arrow operator (`->`) dereferences a pointer to a struct and accesses the member in one step (e.g., `acc->account_number` is equivalent to `(*acc).account_number`).
-
-**Q5: What is the scope and lifetime of your global array `accounts[]`?**
-> **Answer**: The array `accounts[]` is defined in `banking.c` at file scope and declared as `extern` in `banking.h`. Its lifetime is the entire execution duration of the program (static storage duration), residing in the BSS/Data segment rather than on the stack.
-
-**Q6: Why did you declare helper functions like `generate_account_number()` as `static`?**
-> **Answer**: In C, declaring a function `static` gives it internal linkage, restricting its visibility to the translation unit (`banking.c`) where it is defined. This prevents symbol pollution and accidental name collisions across multiple source files.
+### 4. Modular Separation of Concerns
+The codebase is decoupled into three distinct layers:
+- **Presentation Layer (`main.c`)**: Interactive menu presentation, option dispatch, and user loop control.
+- **Domain Logic Layer (`banking.c`, `banking.h`)**: Account management, transaction processing, input validation, and currency formatting.
+- **Persistence Layer (`file_handler.c`, `file_handler.h`)**: Direct binary file operations, disk serialization, and ledger retrieval.
 
 ---
 
-#### Category 2: Strings & Input Validation
+## 9. Verification & Automated Test Results
 
-**Q7: Why is `gets()` considered dangerous, and what did you use instead?**
-> **Answer**: `gets()` has no parameter to specify buffer capacity, making buffer overflow unavoidable if user input exceeds the allocated array. We used `fgets(buf, size, stdin)`, which guarantees reading at most `size - 1` characters and always leaves room for the null-terminator `\0`.
-
-**Q8: What problem occurs with `scanf("%d", &choice)` in a menu loop, and how did you resolve it?**
-> **Answer**: If the user inputs non-numeric characters (e.g., `"abc"`), `scanf("%d")` fails to match, leaving those characters in the `stdin` stream buffer. On the next loop iteration, `scanf()` reads the exact same invalid characters, causing an infinite loop. We resolved this by always reading the entire line into a string buffer via `fgets()`, then parsing it safely with `strtol()`.
-
-**Q9: How does your `read_line()` function handle inputs longer than the buffer?**
-> **Answer**: `read_line()` checks if the last character before `\0` is `\n`. If `\n` is absent, the input exceeded the buffer. The function enters a loop: `while ((ch = getchar()) != '\n' && ch != EOF);` to consume and discard remaining characters from `stdin` so subsequent prompts remain clean.
-
-**Q10: Why use `strncpy()` instead of `strcpy()`, and what precaution is necessary with `strncpy()`?**
-> **Answer**: `strcpy()` does not check destination buffer boundaries and can cause buffer overflows. `strncpy(dest, src, n)` copies at most `n` characters. However, if `src` is `n` characters or longer, `strncpy()` does not append a null terminator. We always append `dest[size - 1] = '\0';` immediately after.
-
-**Q11: Why is `strcmp()` required to compare strings in C instead of `==`?**
-> **Answer**: In C, string variables decay into pointers to their first characters. Using `str1 == str2` compares memory addresses (pointer equality), not content. `strcmp(str1, str2)` compares character by character until a mismatch or `\0` is found.
-
----
-
-#### Category 3: Financial Precision & Integer Representation
-
-**Q12: Why store monetary values in paise rather than `float` or `double`?**
-> **Answer**: Floating-point numbers use base-2 binary representation (IEEE-754) and cannot accurately represent decimal fractions like 0.1 or 0.01. For example, repeated additions of 0.1 float introduce tiny rounding discrepancies (e.g., `0.1 + 0.2 = 0.30000000000000004`). In banking, every fractional unit must balance perfectly. Storing money as integer paise (`long long`) ensures exact arithmetic.
-
-**Q13: What is the maximum balance your system can hold without integer overflow?**
-> **Answer**: A signed 64-bit integer (`long long`) has a maximum value of $2^{63}-1 \approx 9.22 \times 10^{18}$ paise, which corresponds to over **Rs. 92,233,720,368,547,758.07** (92 quadrillion rupees). This is more than sufficient for any realistic banking application.
-
-**Q14: How does your string-to-amount parser prevent overflow during input?**
-> **Answer**: In `parse_amount_to_paise()`, during digit accumulation `rupees = rupees * 10 + digit`, we verify that `rupees <= 999999999999LL` before multiplying, actively preventing 64-bit arithmetic overflow on excessively large inputs.
-
----
-
-#### Category 4: File Handling & Persistence
-
-**Q15: What is the difference between binary mode (`"rb"`, `"wb"`, `"ab"`) and text mode (`"r"`, `"w"`, `"a"`)?**
-> **Answer**: In text mode, the C runtime performs translation on newline characters (e.g., on Windows, `\n` is translated to `\r\n` on write and back on read). In binary mode, bytes are written and read directly without translation. For structured binary records using `fread()` and `fwrite()`, binary mode is mandatory to prevent byte distortion.
-
-**Q16: How do `fread()` and `fwrite()` work in your application?**
-> **Answer**: 
-> - `fwrite(&accounts, sizeof(Account), account_count, fp)` writes `account_count` contiguous `Account` memory blocks directly to disk.
-> - `fread(&accounts[i], sizeof(Account), 1, fp)` reads one struct block at a time from disk directly into our array element.
-> - Both return the number of items successfully transferred, which we check for validation.
-
-**Q17: Why did you call `fflush()` before `fclose()`?**
-> **Answer**: Standard C library file I/O is buffered in user space for performance. `fflush(fp)` forces the runtime to flush its internal buffer to the operating system immediately. Checking `fflush()` ensures write errors caused by disk space exhaustion or hardware disconnects are detected before closing.
-
-**Q18: What is the persistence strategy for accounts vs. transactions?**
-> **Answer**:
-> - **Accounts**: Rewritten entirely (`"wb"`) whenever an account is added or a balance changes. This keeps the file compact and in sync with the in-memory array.
-> - **Transactions**: Appended incrementally (`"ab"`). Completed transactions are immutable audit logs that are never modified or rewritten.
-
-**Q19: What happens if `accounts.dat` does not exist when the application launches?**
-> **Answer**: `load_accounts()` attempts `fopen(ACCOUNTS_FILE, "rb")`. If it returns `NULL`, the function detects that this is the application's first run, sets `account_count = 0`, and returns success without crashing. The file is created automatically when the first account is saved.
-
----
-
-#### Category 5: Data Structures, Search & Algorithms
-
-**Q20: What algorithm did you use to search for accounts, and what is its time complexity?**
-> **Answer**: We used **Linear Search** (`find_account_index()`), iterating through the array from `0` to `account_count - 1`.
-> - **Time Complexity**: $O(n)$ in the worst and average cases, $O(1)$ in the best case (element at index 0).
-> - **Space Complexity**: $O(1)$ auxiliary space.
-
-**Q21: How would you improve search time if the system scaled to 1,000,000 accounts?**
-> **Answer**: 
-> 1. **Binary Search**: Keep accounts sorted by `account_number`. Reduces search complexity to $O(\log n)$. Insertion becomes $O(n)$ to maintain order.
-> 2. **Hash Table**: Use account numbers as keys in an open-addressing or chained hash table for $O(1)$ average search time.
-> 3. **B-Tree / B+ Tree on Disk**: For millions of accounts that cannot fit in RAM, an on-disk B+ Tree index (similar to relational database engines) minimizes disk I/O operations.
-
-**Q22: Why did you use an array instead of a dynamic linked list for `accounts[]`?**
-> **Answer**: For a project with `MAX_ACCOUNTS = 1000`, a static array provides:
-> 1. **Contiguous memory allocation**, yielding superior CPU cache locality and zero memory fragmentation.
-> 2. **Direct indexing** ($O(1)$ random access).
-> 3. **Single-call disk serialization**: We can write the entire array in one `fwrite()` call.
-> 4. Avoidance of dynamic memory (`malloc`/`free`) leak risks.
-
----
-
-#### Category 6: Error Handling & System Limitations
-
-**Q23: How does your code maintain data consistency if a disk write fails during a deposit?**
-> **Answer**: We implement a **two-phase update with rollback**:
-> 1. We record `old_balance = accounts[index].balance_paise`.
-> 2. We update the in-memory balance and attempt `save_all_accounts()`.
-> 3. If `save_all_accounts()` fails, we immediately roll back: `accounts[index].balance_paise = old_balance`, alert the user, and do not log the transaction.
-
-**Q24: What is the remaining limitation of this file persistence approach regarding ACID atomicity?**
-> **Answer**: If power fails or the process is killed in the middle of `fwrite()` when saving `accounts.dat`, the file may be left in a partially written (corrupt) state. In a production database, this is solved via **Write-Ahead Logging (WAL)** or by writing to a temporary file (`accounts.dat.tmp`) and performing an atomic filesystem rename (`rename()`).
-
-**Q25: What future improvements would you propose for this system?**
-> **Answer**:
-> 1. **Atomic File Swapping**: Write new account data to a temp file first, then use POSIX/Win32 atomic file rename to replace the live file.
-> 2. **Dynamic Resizing**: Replace fixed-size array with a dynamically growing array (`realloc`) or on-disk B-Tree.
-> 3. **Account Deactivation/Soft Deletes**: Add a `is_active` status flag rather than physically deleting records.
-> 4. **Authentication & PIN**: Password/PIN hashing using SHA-256 for secure account access.
-> 5. **Thread Safety**: Mutex locks (`pthread_mutex_t`) if multiple teller threads access the banking core concurrently.
-
----
-
-## 9. Verification & Test Execution Results
-
-The following test suite was executed against `banking.exe`:
+The system was verified against a comprehensive functional and edge-case test suite:
 
 | # | Test Scenario | Input / Action | Expected Result | Actual Result | Status |
 |---|---|---|---|---|---|
@@ -388,6 +300,8 @@ The following test suite was executed against `banking.exe`:
 
 ---
 
-## 10. Educational Disclaimer
+## 10. License & Disclaimer
 
-*This project is an educational demonstration developed strictly for technical interview preparation. It is not intended for production banking environments and must not be used to store real financial or personally identifiable information (PII).*
+This project is an open-source educational software system demonstrating robust C programming concepts, safe systems design, and data persistence techniques. It is licensed under the [MIT License](LICENSE).
+
+*Disclaimer: This system is intended for educational and portfolio demonstration purposes. It does not implement real-world cryptographic authentication or encrypted network transmission and must not be used as production banking infrastructure.*
