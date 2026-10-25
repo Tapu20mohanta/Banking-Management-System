@@ -298,8 +298,3 @@ The system was verified against a comprehensive functional and edge-case test su
 | 14 | Post-Restart ID Continuity | Create Account 3 after restart | Generates Account 1003 (no duplicate) | Account 1003 generated, Txn 3 logged | **PASSED** |
 | 15 | Strict Compilation | `gcc -std=c11 -Wall -Wextra -Wpedantic` | Zero warnings, zero errors | Compiled cleanly | **PASSED** |
 
----
-
-## 10. License
-
-This project is open-source and licensed under the [MIT License](LICENSE).
