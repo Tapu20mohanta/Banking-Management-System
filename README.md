@@ -300,8 +300,6 @@ The system was verified against a comprehensive functional and edge-case test su
 
 ---
 
-## 10. License & Disclaimer
+## 10. License
 
-This project is an open-source educational software system demonstrating robust C programming concepts, safe systems design, and data persistence techniques. It is licensed under the [MIT License](LICENSE).
-
-*Disclaimer: This system is intended for educational and portfolio demonstration purposes. It does not implement real-world cryptographic authentication or encrypted network transmission and must not be used as production banking infrastructure.*
+This project is open-source and licensed under the [MIT License](LICENSE).

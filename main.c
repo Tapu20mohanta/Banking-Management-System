@@ -17,10 +17,6 @@
  *
  * Author:  Tapu Mohanta
  * Purpose: Console-based Banking Management System demonstrating robust C programming
- *
- * DISCLAIMER: This is an educational project demonstrating C programming
- * concepts. It does not handle real banking data and must not be used
- * in production. Do not store real customer information.
  */
 
 #include "banking.h"
